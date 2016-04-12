@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.11)
+cmake_minimum_required (VERSION 2.8.7)
 project(server)
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -std=c++11 -pthread")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -std=c++11 -pthread")
