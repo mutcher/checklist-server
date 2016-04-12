@@ -1,19 +1,6 @@
 #include "server_socket.h"
-#include "platform.h"
 #include <iostream>
-
-#if PLATFORM == PLATFORM_WINDOWS
-#include <winsock2.h>
-#pragma comment(lib, "ws2_32.lib")
-
-typedef int socklen_t;
-#else
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#define INVALID_SOCKET static_cast<uint64_t>(-1)
-#endif
+#include "platform_socket.h"
 
 typedef class socket client_socket;
 
@@ -27,7 +14,7 @@ bool server_socket::accept(client_socket& client)
     bool ret = false;
     sockaddr_in addr;
     socklen_t addr_size = sizeof(addr);
-    uint64_t client_handle = ::accept(m_handle, reinterpret_cast<sockaddr*>(&addr), &addr_size);
+    uint64_t client_handle = ::accept(static_cast<SOCKET>(m_handle), reinterpret_cast<sockaddr*>(&addr), &addr_size);
     if (client_handle != INVALID_SOCKET)
     {
         client = client_socket(client_handle, address(addr.sin_addr.s_addr, ntohs(addr.sin_port)));
@@ -51,7 +38,7 @@ bool server_socket::open()
     addr.sin_family = AF_INET;
     addr.sin_port = htons(m_addr.getPort());
 
-    int ret = bind(m_handle, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
+    int ret = bind(static_cast<SOCKET>(m_handle), reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
     if (ret != 0)
     {
         std::cout << "Cannot bind to " << m_addr.getPort() << " port.ret=" << ret << std::endl;
@@ -61,7 +48,7 @@ bool server_socket::open()
         return false;
     }
 
-    ret = ::listen(m_handle, 10);
+    ret = ::listen(static_cast<SOCKET>(m_handle), 10);
     if (ret != 0)
     {
         std::cout << "Cannot start listen ret=" << ret << std::endl;
