@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <cstring>
 
 std::string get_time_stamp(std::chrono::system_clock::time_point time_point)
 {
