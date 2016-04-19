@@ -1,10 +1,8 @@
 #pragma once
-#include <string>
 #include <fstream>
-#include <codecvt>
-#include <locale>
+#include "u16basic.h"
 
-typedef std::u16string::value_type u16type;
+
 typedef std::basic_ofstream<u16type> basic_u16ofstream;
 typedef std::basic_ifstream<u16type> basic_u16ifstream;
 
@@ -20,8 +18,7 @@ public:
     {
         auto& stream = (*this);
         stream.put(item.first);
-        std::wstring_convert<std::codecvt_utf16<u16type>, u16type> conv;
-        auto bytes = conv.to_bytes(item.second);
+        auto bytes = u16stringToBytes(item.second);
         for(const auto& b : bytes)
         {
             stream.put(b);
@@ -64,8 +61,7 @@ public:
         }
         if (!bytes.empty())
         {
-            std::wstring_convert<std::codecvt_utf16<u16type>, u16type> conv;
-            item.second = conv.from_bytes(bytes);
+            item.second = bytesToU16string(bytes);
             ret = true;
         }
         return ret;

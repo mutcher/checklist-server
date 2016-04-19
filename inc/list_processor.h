@@ -5,7 +5,6 @@
 #include "atomic_lock.h"
 #include "socket.h"
 
-
 class list_processor
 {
 private:

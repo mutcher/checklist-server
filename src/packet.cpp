@@ -1,14 +1,11 @@
 #include <cstring>
 #include <sstream>
 #include "packet.h"
-#include <codecvt>
-#include <locale>
+#include "u16basic.h"
 
 const uchar_t g_packet_signture[3] = { 0x05, 0x05, 0x03 };
 const size_t g_max_packet_size = 256; //packet signature, opcode, subcode, data
 const size_t g_min_packet_size = sizeof(g_packet_signture) + 2*sizeof(uchar_t); //packet signature, opcode, subcode
-
-typedef std::u16string::value_type u16type;
 
 packet_helpers::loginPacket::loginPacket()
     :m_builder()
@@ -142,9 +139,8 @@ const size_t& packetReceiver::getDataSize() const
 
 std::u16string packetReceiver::getDataAsU16String(const uchar_t* data, const size_t& size)
 {
-    std::wstring_convert<std::codecvt_utf16<u16type>, u16type> conv;
-    std::u16string ret = conv.from_bytes(reinterpret_cast<const char*>(data), reinterpret_cast<const char*>(data + size));
-    return ret;
+    std::string bytes(reinterpret_cast<const char*>(data), size);
+    return bytesToU16string(bytes);
 }
 
 void packetBuilder::deleteBuffer()
@@ -219,8 +215,7 @@ bool packetBuilder::packU16String(const std::u16string& str, uchar_t* data, size
     if (size >= getPackedStringSize(str))
     {
         data[0] = static_cast<uchar_t>(str.size() * sizeof(u16type));
-        std::wstring_convert<std::codecvt_utf16<u16type>, u16type> conv;
-        auto arr = conv.to_bytes(str);
+        auto arr = u16stringToBytes(str);
         std::memcpy(&data[1], arr.data(), data[0]);
     }
     return bret;
