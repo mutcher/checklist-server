@@ -10,7 +10,7 @@ std::atomic_bool g_isRunning = {true};
 server_socket server(address(0, 51789));
 log_manager log_mgr;
 
-void clientThread(socket clientSocket, list_processor& processor)
+void clientThread(client_socket clientSocket, list_processor& processor)
 {
     client client(clientSocket, processor, &log_mgr);
     if (client.init())
@@ -45,8 +45,8 @@ int main(int argc, char** argv)
     log_mgr.log("Server startup");
     if (socket_system::init())
     {
-        list_processor processor;
-        processor.init();
+        list_processor listProcessor;
+        listProcessor.init();
         if (server.open())
         {
             {
@@ -57,10 +57,10 @@ int main(int argc, char** argv)
             std::vector<std::thread> thread_list;
             while (g_isRunning)
             {
-                socket clientSocket;
+                client_socket clientSocket;
                 if (server.accept(clientSocket))
                 {
-                    thread_list.push_back(std::thread(clientThread, std::move(clientSocket), std::ref(processor)));
+                    thread_list.push_back(std::thread(clientThread, std::move(clientSocket), std::ref(listProcessor)));
                 }
             }
             log_mgr.log("Server shutdown");
@@ -75,7 +75,7 @@ int main(int argc, char** argv)
             ss << "Cannot open socket on " << server.getAddress().getPort() << " port";
             log_mgr.log(ss.str());
         }
-        processor.shutdown();
+        listProcessor.shutdown();
         socket_system::shutdown();
     }
     else

@@ -1,9 +1,12 @@
+#ifndef LIST_PROCESSOR_H_9192016
+#define LIST_PROCESSOR_H_9192016
 #pragma once
+
 #include <string>
 #include <vector>
 #include <thread>
 #include "atomic_lock.h"
-#include "socket.h"
+#include "basic_types.h"
 
 class list_processor
 {
@@ -31,3 +34,4 @@ public:
 
     std::vector<std::u16string> getList(const uchar_t& listID);
 };
+#endif //LIST_PROCESSOR_H_9192016

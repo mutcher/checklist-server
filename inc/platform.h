@@ -1,3 +1,5 @@
+#ifndef PLATFORM_H_9192016
+#define PLATFORM_H_9192016
 #pragma once
 
 #define PLATFORM_WINDOWS 1
@@ -10,4 +12,5 @@
 #define PLATFORM PLATFORM_APPLE
 #else
 #define PLATFORM PLATFORM_UNIX
-#endif
+#endif //if defined(_WIN32)
+#endif //PLATFORM_H_9192016

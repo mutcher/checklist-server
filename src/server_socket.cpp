@@ -2,8 +2,6 @@
 #include <iostream>
 #include "inc/platform_socket.h"
 
-typedef class socket client_socket;
-
 server_socket::server_socket(const address& addr)
     :client_socket(addr), m_clientList()
 {
@@ -26,7 +24,7 @@ bool server_socket::accept(client_socket& client)
 
 bool server_socket::open()
 {
-    m_handle = socket::createSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    m_handle = createSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (m_handle <= 0)
     {
         std::cout << "Cannot create socket.ret=" << m_handle << std::endl;

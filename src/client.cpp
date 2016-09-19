@@ -1,10 +1,10 @@
 ﻿#include <vector>
 #include "inc/client.h"
-#include "inc/packet.h"
+#include "inc/network_packet.h"
 #include <iostream>
 #include <sstream>
 
-client::client(socket& clientSocket, list_processor& processor, log_manager* log)
+client::client(client_socket& clientSocket, list_processor& processor, log_manager* log)
     :m_socket(clientSocket), m_processor(processor), m_log(log)
 {
 }
@@ -17,74 +17,65 @@ client::~client()
 bool client::init()
 {
     bool ret = false;
-    packetReceiver prec;
-    if (prec.receivePacket(m_socket) && prec.isValidPacket() && prec.getOpcode() == opcode_t::OP_LOGIN)
+    network_packet packet;
+    m_socket >> packet;
+    if (packet.is_valid &&
+        m_socket.good() &&
+        packet.opcode == packet_opcodes::OP_LOGIN)
     {
-        std::u16string loginPassword = packetReceiver::getDataAsU16String(prec.getData(), prec.getDataSize());
-        packet_helpers::loginPacket packetHelper;
+        std::u16string loginPassword = packet_data_encoders::decode(packet.data);
         std::u16string::value_type exp[8] = {'t', 'e', 's', 't', ':', '1', '2', '3'};
         std::u16string tst(exp, 8);
-        if (loginPassword == tst)
-        {
-            ret = true;
-            packetHelper.setLoginStatus(static_cast<uchar_t>(m_socket.getID())); //we need some value which not equals to zero
-        }
-        else
-        {
-            ret = false;
-            packetHelper.setLoginStatus(0); // login failed
-        }
-        packetHelper.build();
-        const packetBuilder& builder = packetHelper.getBuilder();
 
-        m_socket.send(reinterpret_cast<const char*>(builder.getBuffer()), builder.getBufferSize());
+        packet.opcode = packet_opcodes::OP_LOGIN;
+        packet.subcode = 0x00;
+        ret = loginPassword == tst;
+        if (ret)
+        {
+            packet.subcode = static_cast<uchar_t>(m_socket.getID()); //we need some value which not equals to zero
+        }
+        m_socket << packet;
     }
     return ret;
 }
 
 void client::processClientRequests()
 {
-    packetReceiver prec;
-    while(prec.receivePacket(m_socket))
+    network_packet packet;
+    while(true)
     {
-        if (!prec.isValidPacket())
+        m_socket >> packet;
+        if (!packet.is_valid || !m_socket.good())
         {
             break;
         }
 
-        switch (prec.getOpcode())
+        switch (packet.opcode)
         {
-        case opcode_t::OP_LIST_ADD:
-            {
-                const uchar_t& listID = prec.getSubcode();
-                std::u16string itemName = prec.getDataAsU16String(prec.getData(), prec.getDataSize());
-                addListItem(listID, itemName);
-            }
+            case packet_opcodes::OP_LIST_ADD:
+                addListItem(packet);
+                break;
+            case packet_opcodes::OP_LIST_GET:
+                getList(packet);
+                break;
+            case packet_opcodes::OP_LIST_DELETE:
+                deleteListItem(packet);
+                break;
+        case packet_opcodes::OP_LIST_SET:
+            //NOT IMPLEMENTED
             break;
-        case opcode_t::OP_LIST_GET:
-            {
-                const uchar_t& listID = prec.getSubcode();
-                getList(listID);
-            }
-            break;
-        case opcode_t::OP_LIST_DELETE:
-            {
-                const uchar_t& listID = prec.getSubcode();
-                std::u16string listItemName = prec.getDataAsU16String(prec.getData(), prec.getDataSize());
-                deleteListItem(listID, listItemName);
-            }
-            break;
-        case opcode_t::OP_LIST_SET:
-            break;
-        case opcode_t::OP_LOGIN: //User already logged in. So this is strange behavior
+        case packet_opcodes::OP_LOGIN: //User already logged in. So this is strange behavior
         default:
             break;
         }
     }
 }
 
-void client::getList(const uchar_t& listID)
+void client::getList(network_packet packet)
 {
+    uchar_t listID = packet.subcode;
+    packet.data.clear();
+    
     auto list = m_processor.getList(listID);
     {
         std::stringstream ss;
@@ -92,32 +83,28 @@ void client::getList(const uchar_t& listID)
         m_log->log(ss.str());
     }
 
-    packet_helpers::getListPacket packetHelper;
     if (list.empty())
     {
-        packetHelper.setEmptyList();
-        packetHelper.build();
-        const auto& builder = packetHelper.getBuilder();
-        m_socket.send(reinterpret_cast<const char*>(builder.getBuffer()), builder.getBufferSize());
+        packet.subcode = 0x00;
+        m_socket << packet;
     }
     else
     {
-        for(size_t i = list.size(); i > 0; i--)
+        for(size_t i = list.size(); i > 0; --i)
         {
-            packetHelper.setListID(static_cast<uchar_t>(i));
-            packetHelper.setListItem(list[i-1]);
-            packetHelper.build();
-            const auto& builder = packetHelper.getBuilder();
-            m_socket.send(reinterpret_cast<const char*>(builder.getBuffer()), builder.getBufferSize());
+            packet.subcode = static_cast<uchar_t>(i);
+            packet.data = packet_data_encoders::encode(list[i-1]);
+            m_socket << packet;
         }
     }
 }
 
-void client::addListItem(const uchar_t& listID, const std::u16string& itemName)
+void client::addListItem(network_packet packet)
 {
-    packetBuilder builder;
-    builder.setOpcode(opcode_t::OP_LIST_ADD);
-
+    uchar_t& listID = packet.subcode;
+    std::u16string itemName = packet_data_encoders::decode(packet.data);
+    packet.data.clear();
+    
     {
         std::stringstream ss;
         ss << "[" << m_socket.getID() << "]: addListItem<listID=" << (int)listID << ">";
@@ -126,23 +113,25 @@ void client::addListItem(const uchar_t& listID, const std::u16string& itemName)
 
     if (listID == 0)
     {
-        uchar_t id = m_processor.createList(itemName);
-        builder.setSubcode(id);
+        listID = m_processor.createList(itemName);
     }
     else
     {
         bool isAdded = m_processor.addListItem(listID, itemName);
-        builder.setSubcode(isAdded? listID : 0x00);
+        if (!isAdded)
+        {
+            packet.subcode = 0x00;
+        }
     }
 
-    builder.build();
-    m_socket.send(reinterpret_cast<const char*>(builder.getBuffer()), builder.getBufferSize());
+    m_socket << packet;
 }
 
-void client::deleteListItem(const uchar_t& listID, const std::u16string& itemName)
+void client::deleteListItem(network_packet packet)
 {
-    packetBuilder builder;
-    builder.setOpcode(opcode_t::OP_LIST_DELETE);
+    uchar_t listID = packet.subcode;
+    std::u16string listItemName = packet_data_encoders::decode(packet.data);
+    packet.data.clear();
 
     {
         std::stringstream ss;
@@ -152,15 +141,14 @@ void client::deleteListItem(const uchar_t& listID, const std::u16string& itemNam
 
     if (listID == 0)
     {
-        bool isDeleted = m_processor.deleteList(itemName);
-        builder.setSubcode(isDeleted? 0x01 : 0x00);
+        bool isDeleted = m_processor.deleteList(listItemName);
+        packet.subcode = (isDeleted? 0x01 : 0x00);
     }
     else
     {
-        bool isDeleted = m_processor.deleteListItem(listID, itemName);
-        builder.setSubcode(isDeleted? listID : 0x00);
+        bool isDeleted = m_processor.deleteListItem(listID, listItemName);
+        packet.subcode = (isDeleted? listID : 0x00);
     }
 
-    builder.build();
-    m_socket.send(reinterpret_cast<const char*>(builder.getBuffer()), builder.getBufferSize());
+    m_socket << packet;
 }
