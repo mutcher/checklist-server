@@ -4,19 +4,17 @@ namespace packet_data_encoders
 {
     std::vector<uchar_t> encode(const std::u16string& str)
     {
-        std::vector<uchar_t> data(sizeof(uchar_t) + sizeof(u16type) * str.size());
-        auto pos = data.begin();
-
-        *(pos) = static_cast<uchar_t>(str.size() * sizeof(u16type));
-        auto tmp = u16stringToBytes(str);
-        std::copy(tmp.cbegin(), tmp.cend(), ++pos);
+        std::vector<uchar_t> data;
+        std::string tmp = u16stringToBytes(str);
+        data.resize(tmp.size());
+        std::copy(tmp.cbegin(), tmp.cend(), data.begin());
 
         return data;
     }
 
     std::u16string decode(const std::vector<uchar_t>& data)
     {
-        std::string bytes(reinterpret_cast<const char*>(&data[1]), data.size() - 1);
+        std::string bytes(reinterpret_cast<const char*>(data.data()), data.size());
         return bytesToU16string(bytes);
     }
 }

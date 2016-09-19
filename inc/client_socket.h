@@ -56,7 +56,9 @@ public:
             size_t data_length = client_socket::min_packet_length;
             if (!packet.data.empty())
             {
-                data_length += packet.data.size();
+                // one symbol for data size
+                // plus data length
+                data_length += packet.data.size() + 1;
             }
             std::vector<uchar_t> data(data_length);
             auto iter = data.begin();
@@ -78,8 +80,11 @@ public:
             // packet subcode
             *(++iter) = packet.subcode;
             // data section
-            std::copy(packet.data.cbegin(), packet.data.cend(), ++iter);
-
+            if (!packet.data.empty())
+            {
+                *(++iter) = static_cast<uchar_t>(packet.data.size());
+                std::copy(packet.data.cbegin(), packet.data.cend(), ++iter);
+            }
             size_t sent_count = ::send(static_cast<SOCKET>(m_handle),
                                        reinterpret_cast<const char*>(data.data()),
                                        static_cast<int>(data.size()),

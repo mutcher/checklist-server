@@ -60,7 +60,7 @@ int main(int argc, char** argv)
                 client_socket clientSocket;
                 if (server.accept(clientSocket))
                 {
-                    thread_list.push_back(std::thread(clientThread, std::move(clientSocket), std::ref(listProcessor)));
+                    thread_list.emplace_back(clientThread, clientSocket, std::ref(listProcessor));
                 }
             }
             log_mgr.log("Server shutdown");
