@@ -1,6 +1,6 @@
 ﻿#include <vector>
-#include "client.h"
-#include "packet.h"
+#include "inc/client.h"
+#include "inc/packet.h"
 #include <iostream>
 #include <sstream>
 

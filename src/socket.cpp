@@ -1,6 +1,6 @@
 #include <iostream>
-#include "socket.h"
-#include "platform_socket.h"
+#include "inc/socket.h"
+#include "inc/platform_socket.h"
 
 socket::socket()
     :m_handle(0), m_addr()

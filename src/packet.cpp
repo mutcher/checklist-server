@@ -1,7 +1,7 @@
 #include <cstring>
 #include <sstream>
-#include "packet.h"
-#include "u16basic.h"
+#include "inc/packet.h"
+#include "inc/u16basic.h"
 
 const uchar_t g_packet_signture[3] = { 0x05, 0x05, 0x03 };
 const size_t g_max_packet_size = 256; //packet signature, opcode, subcode, data

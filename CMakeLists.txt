@@ -15,6 +15,6 @@ file(GLOB Src_Files src/*.cpp)
 source_group("Include Files" FILES ${Inc_Files})
 source_group("Source Files" FILES ${Src_Files})
 
-
+include_directories(${CMAKE_SOURCE_DIR})
 add_executable(${CMAKE_PROJECT_NAME} ${Src_Files} ${Inc_Files})
 

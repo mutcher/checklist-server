@@ -3,8 +3,8 @@
 #include <fstream>
 #include <sys/stat.h>
 
-#include "list_processor.h"
-#include "u16stream.h"
+#include "inc/list_processor.h"
+#include "inc/u16stream.h"
 
 list_processor::list_processor()
     :m_lock(), m_lists(), m_workingThread(), m_isWorking(true)

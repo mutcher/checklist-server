@@ -1,6 +1,6 @@
-#include "server_socket.h"
+#include "inc/server_socket.h"
 #include <iostream>
-#include "platform_socket.h"
+#include "inc/platform_socket.h"
 
 typedef class socket client_socket;
 

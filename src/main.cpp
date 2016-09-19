@@ -1,10 +1,10 @@
 #include <thread>
 #include <csignal>
 #include <sstream>
-#include "server_socket.h"
-#include "client.h"
-#include "list_processor.h"
-#include "log_manager.h"
+#include "inc/server_socket.h"
+#include "inc/client.h"
+#include "inc/list_processor.h"
+#include "inc/log_manager.h"
 
 std::atomic_bool g_isRunning = {true};
 server_socket server(address(0, 51789));
