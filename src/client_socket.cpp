@@ -5,17 +5,17 @@
 uchar_t client_socket::min_packet_length = 5;
 
 client_socket::client_socket()
-    :m_handle(0), m_addr(), _good(true)
+    :_good(true), m_handle(0), m_addr()
 {
 }
 
 client_socket::client_socket(const address & addr)
-    :m_handle(0), m_addr(addr), _good(true)
+    :_good(true), m_handle(0), m_addr(addr)
 {
 }
 
 client_socket::client_socket(const uint64_t & handle, const address & addr)
-    :m_handle(handle), m_addr(addr), _good(true)
+    :_good(true), m_handle(handle), m_addr(addr)
 {
 }
 
