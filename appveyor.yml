@@ -1,0 +1,18 @@
+version: 1.0.{build}
+configuration: Release
+platform: x64
+before_build:
+- cmd: >-
+    echo Running cmake...
+
+    mkdir out
+
+    cd out
+
+    cmake -G "Visual Studio 14 2015 Win64" ..
+build:
+  project: C:\projects\checklist-server\out\server.sln
+  parallel: true
+  verbosity: normal
+artifacts:
+- path: out\bin\Release\server.exe
