@@ -1,6 +1,6 @@
 set(SOURCE_FILES
         main.cpp
-        HttpRequstUnitTests.cpp
+        HttpUriPatternProcessorUnitTests.cpp
 )
 
 add_executable(tests ${SOURCE_FILES})

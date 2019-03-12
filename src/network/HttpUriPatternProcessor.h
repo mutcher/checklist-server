@@ -12,6 +12,6 @@ class HttpUriPatternProcessor {
   const std::map<std::string, std::string>& get_parameters() const;
 
  private:
-  bool is_uri_matched;
+  bool m_is_uri_matched;
   std::map<std::string, std::string> m_parameters;
 };

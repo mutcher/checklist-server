@@ -6,7 +6,7 @@
 
 class RestApiService : public HttpRequestHandler {
  public:
-  RestApiService();
+  RestApiService(uint16_t port_number);
 
   void run();
 

@@ -4,19 +4,7 @@
 #include <sstream>
 #include <vector>
 
-namespace {
-std::vector<std::string> split_string(const std::string& str, char delimeter) {
-  std::string tmp_line;
-  std::vector<std::string> items;
-  std::istringstream tokenStream(str);
-  while (std::getline(tokenStream, tmp_line, '/')) {
-    if (!tmp_line.empty()) {
-      items.push_back(tmp_line);
-    }
-  }
-  return items;
-}
-}  // namespace
+namespace {}  // namespace
 
 HttpRequest::HttpRequest(const std::string& method,
                          const std::string& uri,
@@ -33,32 +21,6 @@ const std::string& HttpRequest::get_uri() const {
 
 const std::string& HttpRequest::get_body() const {
   return m_body;
-}
-
-const bool HttpRequest::is_uri_match_to_pattern(
-    const std::string& pattern) const {
-  const auto delimeter = '/';
-  auto splitted_uri = split_string(get_uri(), delimeter);
-  auto splitted_pattern = split_string(pattern, delimeter);
-  if (splitted_pattern.size() != splitted_uri.size()) {
-    return false;
-  }
-
-  for (size_t i = 0; i < splitted_uri.size(); ++i) {
-    if (*splitted_pattern[i].begin() == ':') {
-      continue;
-    }
-    if (splitted_pattern[i] != splitted_uri[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool HttpRequest::parse_uri_parameters(
-    const std::string& pattern,
-    std::map<std::string, std::string>& parameters) const {
-  return false;
 }
 
 bool HttpRequest::deserialize(const std::string& buffer, HttpRequest& request) {
