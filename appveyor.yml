@@ -1,18 +1,26 @@
 version: 1.0.{build}
-configuration: Release
-platform: x64
+
+install:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - git submodule update --init --recursive
+
+configuration:
+  - Release
+  - Debug
+
+platform:
+  - x64
+
 before_build:
-- cmd: >-
-    echo Running cmake...
+  - mkdir build
+  - cd build
+  - cmake -G "Visual Studio 14 2015 Win64" ..
 
-    mkdir out
-
-    cd out
-
-    cmake -G "Visual Studio 14 2015 Win64" ..
 build:
-  project: C:\projects\checklist-server\out\server.sln
+  project: C:\projects\checklist-server\build\checklist-server.sln
   parallel: true
   verbosity: normal
+
 artifacts:
-- path: out\bin\Release\server.exe
+  - path: build\bin\Release\server.exe
+  - path: build\bin\Debug\server.exe

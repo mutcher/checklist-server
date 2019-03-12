@@ -1,20 +1,25 @@
-cmake_minimum_required (VERSION 2.8.7)
-project(server)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-if (MSVC)
+set(PROJECT_NAME "checklist-server")
+project(${PROJECT_NAME})
 
-else()
-  set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -std=c++11 -pthread")
-  set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -std=c++11 -pthread")
-endif()
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_CXX_STANDARD 11)
 
-file(GLOB Inc_Files inc/*.h)
-file(GLOB Src_Files src/*.cpp)
+# sqlite
+set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE)
+set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)
+add_subdirectory(external/sqlitecpp)
 
-source_group("Include Files" FILES ${Inc_Files})
-source_group("Source Files" FILES ${Src_Files})
 
-include_directories(${CMAKE_SOURCE_DIR})
-add_executable(${CMAKE_PROJECT_NAME} ${Src_Files} ${Inc_Files})
+set(RAPIDJSON_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(RAPIDJSON_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+add_subdirectory(external/rapidjson)
+include_directories(external/rapidjson/include)
+# sources
+add_subdirectory(src)
 
+enable_testing()
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+add_subdirectory(external/googletest)
+include_directories(external/googletest/include)
+add_subdirectory(tests)
